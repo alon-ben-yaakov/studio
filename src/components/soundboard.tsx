@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
-import type { Noise, Player, Synth } from 'tone';
+import type { Noise, Player, Synth, Module } from 'tone';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Phone, Utensils, FileSignature, Radio } from 'lucide-react';
@@ -19,10 +19,12 @@ const sounds = [
 
 const Soundboard: React.FC<SoundboardProps> = ({ className }) => {
   const audioRefs = useRef<Record<string, Synth | Noise | Player>>({});
+  const ToneRef = useRef<typeof import('tone') | null>(null);
 
   useEffect(() => {
     // Lazy load Tone.js
     import('tone').then(Tone => {
+      ToneRef.current = Tone;
       audioRefs.current['tuna'] = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.2 } }).toDestination();
       audioRefs.current['permit'] = new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.1 } }).toDestination();
       audioRefs.current['signed'] = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 }, volume: -10 }).toDestination();
@@ -30,13 +32,18 @@ const Soundboard: React.FC<SoundboardProps> = ({ className }) => {
     });
 
     return () => {
-      Object.values(audioRefs.current).forEach(audio => audio.dispose());
+      Object.values(audioRefs.current).forEach(audio => {
+        if (audio && typeof (audio as Module).dispose === 'function') {
+          (audio as Module).dispose();
+        }
+      });
     };
   }, []);
 
   const playSound = (id: string) => {
     const audio = audioRefs.current[id];
-    if (!audio) return;
+    const Tone = ToneRef.current;
+    if (!audio || !Tone) return;
 
     if (id === 'tuna' && audio instanceof Tone.Synth) {
       audio.triggerAttackRelease('C4', '8n');
