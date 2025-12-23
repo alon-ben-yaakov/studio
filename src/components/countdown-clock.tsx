@@ -20,12 +20,12 @@ const TimeBlock: FC<{ value: string; label: string; isHadal: boolean }> = ({ val
 
 const CountdownClock: FC<CountdownClockProps> = ({ hours, minutes, seconds, isHadal }) => {
   return (
-    <div className="flex justify-center items-center gap-2 md:gap-4">
-      <TimeBlock value={hours} label="שעות" isHadal={isHadal} />
+    <div className="flex flex-row-reverse justify-center items-center gap-2 md:gap-4">
+      <TimeBlock value={seconds} label="שניות" isHadal={isHadal} />
       <span className="font-headline text-6xl md:text-8xl text-primary/70 pb-8">:</span>
       <TimeBlock value={minutes} label="דקות" isHadal={isHadal} />
       <span className="font-headline text-6xl md:text-8xl text-primary/70 pb-8">:</span>
-      <TimeBlock value={seconds} label="שניות" isHadal={isHadal} />
+      <TimeBlock value={hours} label="שעות" isHadal={isHadal} />
     </div>
   );
 };
