@@ -23,13 +23,13 @@ export async function generateMiluimExcuse(input: GenerateMiluimExcuseInput): Pr
   return generateMiluimExcuseFlow(input);
 }
 
-const excuseGeneratorTool = ai.defineTool({
-  name: 'excuseGenerator',
-  description: 'Generates a plausible and funny excuse for a soldier to avoid a task during reserve duty.',
-  inputSchema: z.object({}),
-  outputSchema: z.string(),
-},
-async () => {
+const generateMiluimExcuseFlow = ai.defineFlow(
+  {
+    name: 'generateMiluimExcuseFlow',
+    inputSchema: GenerateMiluimExcuseInputSchema,
+    outputSchema: GenerateMiluimExcuseOutputSchema,
+  },
+  async () => {
     const excuses = [
         "אני חייב ללכת להאכיל את היונה של המפקד, היא אוכלת רק אבוקדו אורגני.",
         "קיבלתי פקודה סודית מהרס\"ר: למצוא את המתכון הסודי של השניצל מהחדר אוכל.",
@@ -53,7 +53,7 @@ async () => {
         "הפסיכולוגית הצבאית אמרה שאני צריך יותר 'זמן אני' איכותי.",
         "אני צריך להכין מצגת פאוורפוינט על החשיבות של שתיית מים.",
         "אני מחפש מטען לאייפון 4, המפקד מתעקש שזה קיים איפשהו.",
-        "אני באמצע סשן מדיטציה עמוק כדי להתחבר לשורשים של הזית ליד הש.ג.",
+        "אני באמצע סשнן מדיטציה עמוק כדי להתחבר לשורשים של הזית ליד הש.ג.",
         "אני בודק תאריכי תפוגה על כל מנות הקרב, מישהו צריך לעשות את זה.",
         "הרס\"פ ביקש ממני באופן אישי לסדר את כל הכפיות לפי גודל.",
         "אני חייב לסיים לקרוא את 'מלחמה ושלום', נשאר לי רק עוד עמוד אחד.",
@@ -83,26 +83,7 @@ async () => {
         "אני צריך לתקן את האינטרנט, ראיתי ביוטיוב איך עושים את זה."
       ];
     const randomIndex = Math.floor(Math.random() * excuses.length);
-    return excuses[randomIndex];
-});
-
-const generateMiluimExcusePrompt = ai.definePrompt({
-  name: 'generateMiluimExcusePrompt',
-  tools: [excuseGeneratorTool],
-  input: {schema: GenerateMiluimExcuseInputSchema},
-  output: {schema: GenerateMiluimExcuseOutputSchema},
-  prompt: `You are a helpful assistant that generates a random excuse for a soldier to avoid last minute tasks. Use the excuseGenerator tool to generate the excuse and return it to the user.`,
-});
-
-const generateMiluimExcuseFlow = ai.defineFlow(
-  {
-    name: 'generateMiluimExcuseFlow',
-    inputSchema: GenerateMiluimExcuseInputSchema,
-    outputSchema: GenerateMiluimExcuseOutputSchema,
-  },
-  async input => {
-    // Directly call the tool to get an excuse.
-    const excuse = await excuseGeneratorTool(input);
+    const excuse = excuses[randomIndex];
     return { excuse };
   }
 );
