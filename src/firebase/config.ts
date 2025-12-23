@@ -2,10 +2,10 @@
 import { FirebaseOptions } from 'firebase/app';
 
 export const firebaseConfig: FirebaseOptions = {
-  apiKey: process.env.NEXT_PUBLIC_API_KEY || "",
-  authDomain: process.env.NEXT_PUBLIC_AUTH_DOMAIN || "",
-  projectId: process.env.NEXT_PUBLIC_PROJECT_ID || "",
-  storageBucket: process.env.NEXT_PUBLIC_STORAGE_BUCKET || "",
-  messagingSenderId: process.env.NEXT_PUBLIC_MESSAGING_SENDER_ID || "",
-  appId: process.env.NEXT_PUBLIC_APP_ID || "",
+  apiKey: process.env.NEXT_PUBLIC_API_KEY || "AIzaSyBEZXlKHY4TFZeLoHYxIEQ31dFKu-t5lBM",
+  authDomain: process.env.NEXT_PUBLIC_AUTH_DOMAIN || "studio-6384782687-93554.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_PROJECT_ID || "studio-6384782687-93554",
+  storageBucket: process.env.NEXT_PUBLIC_STORAGE_BUCKET || "studio-6384782687-93554.appspot.com",
+  messagingSenderId: process.env.NEXT_PUBLIC_MESSAGING_SENDER_ID || "246776756238",
+  appId: process.env.NEXT_PUBLIC_APP_ID || "1:246776756238:web:af5f3ab97e974a7e17245f",
 };
