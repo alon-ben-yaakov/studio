@@ -1,3 +1,10 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "getaway-background",
+      "description": "A pastoral beach scene for the getaway mode.",
+      "imageUrl": "https://images.unsplash.com/photo-1615259844850-10eacfec0ec8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxiZWFjaCUyMHRoYWlsYW5kfGVufDB8fHx8MTc2NjQ4NjQ1N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "beach thailand"
+    }
+  ]
 }
