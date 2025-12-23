@@ -1,35 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { differenceInMilliseconds } from 'date-fns';
 
-const COUNTDOWN_DURATION = 48 * 60 * 60 * 1000; // 48 hours in ms
+const TARGET_DATE_STRING = '2025-12-25T12:00:00+02:00'; // Israel Standard Time (UTC+2)
+
+// Calculate the total duration for the progress bar
+const START_DATE_STRING = '2025-12-23T12:00:00+02:00';
+const TOTAL_DURATION = differenceInMilliseconds(new Date(TARGET_DATE_STRING), new Date(START_DATE_STRING));
+
 
 export const useCountdown = () => {
-  const [targetDate, setTargetDate] = useState<number | null>(null);
-  const [timeLeft, setTimeLeft] = useState(COUNTDOWN_DURATION);
-
-  useEffect(() => {
-    const storedTarget = localStorage.getItem('countdownTarget');
-    const now = new Date().getTime();
-
-    let targetTime: number;
-
-    if (storedTarget) {
-      targetTime = parseInt(storedTarget, 10);
-      // If target is in the past by more than 48 hours, reset it.
-      if (now > targetTime + COUNTDOWN_DURATION) {
-        targetTime = now + COUNTDOWN_DURATION;
-        localStorage.setItem('countdownTarget', targetTime.toString());
-      }
-    } else {
-      targetTime = now + COUNTDOWN_DURATION;
-      localStorage.setItem('countdownTarget', targetTime.toString());
-    }
-    
-    setTargetDate(targetTime);
-    setTimeLeft(Math.max(0, targetTime - now));
-
-  }, []);
+  const [targetDate] = useState(() => new Date(TARGET_DATE_STRING).getTime());
+  const [timeLeft, setTimeLeft] = useState(() => {
+     const now = new Date().getTime();
+     return Math.max(0, targetDate - now);
+  });
 
   useEffect(() => {
     if (timeLeft <= 0) {
@@ -37,16 +23,17 @@ export const useCountdown = () => {
     }
 
     const interval = setInterval(() => {
-      setTimeLeft((prev) => (prev > 1000 ? prev - 1000 : 0));
+      const now = new Date().getTime();
+      setTimeLeft(Math.max(0, targetDate - now));
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [timeLeft]);
+  }, [targetDate, timeLeft]);
   
   const hours = Math.floor((timeLeft / (1000 * 60 * 60)));
   const minutes = Math.floor((timeLeft / 1000 / 60) % 60);
   const seconds = Math.floor((timeLeft / 1000) % 60);
-  const progress = targetDate ? Math.min(100, ((COUNTDOWN_DURATION - timeLeft) / COUNTDOWN_DURATION) * 100) : 0;
+  const progress = Math.min(100, ((TOTAL_DURATION - timeLeft) / TOTAL_DURATION) * 100);
   
   return { 
     timeLeft, 

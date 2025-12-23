@@ -44,7 +44,7 @@ const ExcuseGenerator: React.FC<ExcuseGeneratorProps> = ({ className, isHadal })
         {/* Front of the card */}
         <div className="absolute w-full h-full [backface-visibility:hidden]">
           <div className="glass-card flex flex-col items-center justify-center p-6 text-center h-full">
-            <h3 className="font-headline text-2xl text-primary font-bold">מחולל התירוצים למ"פ</h3>
+            <h3 className="font-headline text-2xl text-primary font-bold">מחולל התירוצים</h3>
             <p className="text-foreground/80 mt-2 mb-4">
               {isHadal ? '?????? ?????? ????? ??????' : 'צריך להתחמק ממשימה? לחץ על הכפתור'}
             </p>

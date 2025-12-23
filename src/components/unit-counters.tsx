@@ -27,8 +27,8 @@ const UnitCounters: FC<UnitCountersProps> = ({ timeLeft, isHadal }) => {
   return (
     <div className="flex flex-wrap justify-center gap-4">
       <Counter icon={Coffee} value={coffeeCups} label="כוסות קפה" />
-      <Counter icon={Utensils} value={meals} label="פריסות" />
-      <Counter icon={BedDouble} value={sleepMinutes} label="דקות שינה" />
+      <Counter icon={Utensils} value={meals} label="יוניצמן עולה מטבח" />
+      <Counter icon={BedDouble} value={sleepMinutes} label="גסטרונומים" />
     </div>
   );
 };
