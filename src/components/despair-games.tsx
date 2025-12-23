@@ -53,6 +53,7 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
   const [dirt, setDirt] = useState<boolean[][]>([]);
   const [cleanedCount, setCleanedCount] = useState(0);
   const [toiletTimeLeft, setToiletTimeLeft] = useState(TOILET_CLEANER_DURATION);
+  const [allCleaned, setAllCleaned] = useState(false);
 
 
   // Generic Timer Effect
@@ -80,6 +81,19 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
       if (gameTimerRef.current) clearTimeout(gameTimerRef.current);
     };
   }, [activeGame, gameState, clickerTimeLeft, toiletTimeLeft]);
+
+  // Check if all dirt is cleaned
+  useEffect(() => {
+    if (activeGame === 'toilet-cleaner' && gameState === 'playing' && dirt.length > 0) {
+      const isAllClean = dirt.every(row => row.every(cell => !cell));
+      if (isAllClean) {
+        setAllCleaned(true);
+        setGameState('finished');
+        if (gameTimerRef.current) clearTimeout(gameTimerRef.current);
+      }
+    }
+  }, [dirt, activeGame, gameState]);
+
 
   const startClickerGame = () => {
     setActiveGame('clicker');
@@ -134,10 +148,18 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
     setActiveGame('toilet-cleaner');
     setToiletTimeLeft(TOILET_CLEANER_DURATION);
     setCleanedCount(0);
+    setAllCleaned(false);
     // Create a grid with ~50% dirt
     const initialDirt = Array.from({ length: TOILET_GRID_SIZE }, () =>
         Array.from({ length: TOILET_GRID_SIZE }, () => Math.random() > 0.5)
     );
+    // Ensure there is at least one dirt patch
+    if (initialDirt.every(row => row.every(cell => !cell))) {
+        const randRow = Math.floor(Math.random() * TOILET_GRID_SIZE);
+        const randCol = Math.floor(Math.random() * TOILET_GRID_SIZE);
+        initialDirt[randRow][randCol] = true;
+    }
+
     setDirt(initialDirt);
     setGameState('playing');
     setViewLeaderboard(false);
@@ -163,7 +185,8 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
         score = clicks;
         gameName = 'שבירת שפצורים';
     } else if (activeGame === 'toilet-cleaner') {
-        score = cleanedCount;
+        // Score is the number of cleaned patches, plus a bonus for finishing early
+        score = cleanedCount + (allCleaned ? toiletTimeLeft : 0);
         gameName = 'ניקיון שירותים';
     }
 
@@ -236,7 +259,7 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
     </>
   );
   
-  const renderGenericFinishScreen = (gameTitle: string, score: number | string, scoreLabel: string, onPlayAgain: () => void, allowSave: boolean) => (
+  const renderGenericFinishScreen = (scoreLabel: string, onPlayAgain: () => void, allowSave: boolean) => (
        <>
       <h3 className="font-headline text-2xl text-primary font-bold">המשחק נגמר!</h3>
       <p className="text-foreground/80 mt-2 mb-4">
@@ -281,8 +304,6 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
     }
     // Finished state
     return renderGenericFinishScreen(
-        'שבירת שפצורים',
-        clicks,
         `שברת ${clicks} שפצורים ב-${CLICKER_GAME_DURATION} שניות.`,
         startClickerGame,
         true
@@ -329,8 +350,6 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
     }
      // Finished state
     return renderGenericFinishScreen(
-        'מצא את הרס"ר',
-        attempts,
         `מצאת את הרס"ר ב-${attempts} ניסיונות!`,
         resetFindSergeantGame,
         false
@@ -367,10 +386,15 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
             );
         }
         
+        let scoreMessage = '';
+        if (allCleaned) {
+            scoreMessage = `סיימת לנקות הכל עם ${toiletTimeLeft} שניות בונוס! כל הכבוד!`;
+        } else {
+            scoreMessage = `הזמן נגמר! ניקית ${cleanedCount} לכלוכים.`;
+        }
+
         return renderGenericFinishScreen(
-            'ניקיון שירותים',
-            cleanedCount,
-            `ניקית ${cleanedCount} לכלוכים ב-${TOILET_CLEANER_DURATION} שניות.`,
+            scoreMessage,
             startToiletCleanerGame,
             true
         );
