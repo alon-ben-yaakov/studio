@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Hand, Repeat, Play, Timer, Search, ThumbsDown } from 'lucide-react';
+import { Hand, Repeat, Play, Timer, Search, ThumbsDown, X } from 'lucide-react';
 import HelmetIcon from './icons/helmet-icon';
 
 interface DespairGamesProps {
@@ -29,6 +29,8 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
   const [sergeantPosition, setSergeantPosition] = useState({ row: 0, col: 0 });
   const [found, setFound] = useState(false);
   const [attempts, setAttempts] = useState(0);
+  const [clickedCells, setClickedCells] = useState<boolean[][]>([]);
+
 
   // Clicker Game Logic
   useEffect(() => {
@@ -76,12 +78,22 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
       row: Math.floor(Math.random() * FIND_SERGEANT_GRID_SIZE),
       col: Math.floor(Math.random() * FIND_SERGEANT_GRID_SIZE),
     });
+    setClickedCells(
+        Array.from({ length: FIND_SERGEANT_GRID_SIZE }, () =>
+        Array(FIND_SERGEANT_GRID_SIZE).fill(false)
+      )
+    );
   };
 
-  const handleGridClick = (isSergeant: boolean) => {
-    if (found) return;
+  const handleGridClick = (row: number, col: number) => {
+    if (found || clickedCells[row][col]) return;
+    
+    const newClickedCells = clickedCells.map(r => [...r]);
+    newClickedCells[row][col] = true;
+    setClickedCells(newClickedCells);
+
     setAttempts(prev => prev + 1);
-    if (isSergeant) {
+    if (row === sergeantPosition.row && col === sergeantPosition.col) {
       setFound(true);
     }
   };
@@ -148,20 +160,29 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
             const row = Math.floor(index / FIND_SERGEANT_GRID_SIZE);
             const col = index % FIND_SERGEANT_GRID_SIZE;
             const isSergeant = row === sergeantPosition.row && col === sergeantPosition.col;
+            const isClicked = clickedCells[row]?.[col] ?? false;
+
             return (
               <Button
                 key={index}
                 variant="outline"
                 className="w-12 h-12 p-0"
-                onClick={() => handleGridClick(isSergeant)}
+                onClick={() => handleGridClick(row, col)}
+                disabled={isClicked}
               >
-                {found && isSergeant ? <HelmetIcon className="w-8 h-8 text-destructive animate-ping" /> : <ThumbsDown className="w-6 h-6 text-foreground/30" />}
+                {isClicked && isSergeant ? (
+                  <HelmetIcon className="w-8 h-8 text-destructive animate-bounce" />
+                ) : isClicked ? (
+                   <X className="w-6 h-6 text-foreground/30" />
+                ) : (
+                  <ThumbsDown className="w-6 h-6 text-foreground/30" />
+                )}
               </Button>
             );
           })}
         </div>
         {found && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 animate-in fade-in">
             <Button onClick={resetFindSergeantGame} className="glow-on-hover">
               <Repeat className="mr-2 h-4 w-4" />
               שחק שוב
