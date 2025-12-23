@@ -1,0 +1,26 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Rules for scores collection
+    match /scores/{scoreId} {
+      // Anyone can read the scores for the leaderboard
+      allow read: if true;
+      // Only signed-in users can create a score
+      // and they can only create scores for themselves.
+      allow create: if isSignedIn() && isOwner(request.resource.data.userId);
+      // Users cannot update or delete scores.
+      allow update, delete: if false;
+    }
+  }
+}

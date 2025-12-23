@@ -1,0 +1,44 @@
+{
+  "entities": {
+    "score": {
+      "title": "Score",
+      "description": "Represents a single score entry for a game.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who achieved the score."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the player."
+        },
+        "score": {
+          "type": "number",
+          "description": "The score achieved."
+        },
+        "game": {
+          "type": "string",
+          "description": "The name of the game played."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the score was created."
+        }
+      },
+      "required": ["userId", "name", "score", "game", "createdAt"]
+    }
+  },
+  "auth": {
+    "providers": ["anonymous"]
+  },
+  "firestore": {
+    "/scores/{scoreId}": {
+      "schema": {
+        "$ref": "#/backend/entities/score"
+      },
+      "description": "Collection of game scores."
+    }
+  }
+}
