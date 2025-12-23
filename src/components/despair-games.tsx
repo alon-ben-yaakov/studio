@@ -30,7 +30,7 @@ type Inputs = {
 };
 
 const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
-  const { register, handleSubmit, formState: { errors } } = useForm<Inputs>();
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<Inputs>();
   const user = useUser();
   const firestore = useFirestore();
 
@@ -269,7 +269,9 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
         <form onSubmit={handleSubmit(onNameSubmit)} className="w-full space-y-4">
             <Input {...register("name", { required: true, maxLength: 15 })} placeholder="הכנס שם לטבלת השיאים" className="text-center" />
             {errors.name && <p className="text-destructive text-sm">צריך להכניס שם (עד 15 תווים).</p>}
-            <Button type="submit" className="w-full">שמור תוצאה</Button>
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'שומר...' : 'שמור תוצאה'}
+            </Button>
         </form>
       ) : null }
        <div className="flex gap-2 mt-4">
@@ -316,7 +318,7 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
       <>
         <h3 className="font-headline text-2xl text-primary font-bold mb-2">איפה הרס"ר?</h3>
         <p className="text-foreground/80 mb-4 text-center">
-          {found ? `מצאת אותו ב-${attempts} ניסיונות!` : `הוא מסתתר... מצא אותו. (${attempts} ניסיונות)`}
+          {`הוא מסתתר... מצא אותו. (${attempts} ניסיונות)`}
         </p>
         <div className={`grid gap-2 mb-4`} style={{ gridTemplateColumns: `repeat(${FIND_SERGEANT_GRID_SIZE}, 1fr)` }}>
           {Array.from({ length: FIND_SERGEANT_GRID_SIZE * FIND_SERGEANT_GRID_SIZE }).map((_, index) => {
