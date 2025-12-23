@@ -11,6 +11,8 @@ import DespairGames from '@/components/despair-games';
 import GrandFinale from '@/components/grand-finale';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { AutoFilter, Noise, Synth } from 'tone';
+import { Button } from '@/components/ui/button';
+import { Gamepad2 } from 'lucide-react';
 
 export default function Home() {
   const { timeLeft, hours, minutes, seconds, progress } = useCountdown();
@@ -20,6 +22,7 @@ export default function Home() {
   
   const getawaySound = useRef<{ filter: AutoFilter, noise: Noise } | null>(null);
   const hadalSynth = useRef<Synth | null>(null);
+  const gamesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -65,6 +68,10 @@ export default function Home() {
       hadalSynth.current?.triggerAttackRelease("C5", "8n");
     }
   };
+
+  const scrollToGames = () => {
+    gamesRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
   
   if (!isClient) {
     return (
@@ -90,13 +97,19 @@ export default function Home() {
         {isFinished && <GrandFinale />}
         
         <div className={`mx-auto max-w-7xl space-y-8 transition-filter duration-500 ${isFinished ? 'blur-sm pointer-events-none' : ''}`}>
-          <header className="text-center">
+          <header className="text-center relative">
             <h1 className="font-headline text-4xl sm:text-5xl md:text-7xl font-bold text-primary-foreground bg-primary/80 inline-block px-6 py-2 rounded-lg shadow-xl" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>
               {isHadal ? '?????' : '48 שעות לחדל'}
             </h1>
             <p className="text-foreground/80 mt-4 text-lg">
               {isHadal ? '???? ?????? ????? ??????' : 'הספירה לאחור לחופש'}
             </p>
+             <div className="absolute top-0 left-0">
+                <Button onClick={scrollToGames} variant="ghost" className="glow-on-hover">
+                    <Gamepad2 className="mr-2" />
+                    משחקי ייאוש
+                </Button>
+            </div>
           </header>
 
           <section className="glass-card p-4 sm:p-6 text-center space-y-6">
@@ -105,7 +118,7 @@ export default function Home() {
              <MissionProgress progress={progress} />
           </section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" id="games-section" ref={gamesRef}>
             <ExcuseGenerator className="lg:col-span-1" isHadal={isHadal} />
             <StressReliefZone className="lg:col-span-1" onGetawayChange={handleGetawayChange} onHadalChange={handleHadalChange} />
             <DespairGames className="lg:col-span-1" />
