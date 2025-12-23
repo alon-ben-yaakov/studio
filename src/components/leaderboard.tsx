@@ -3,7 +3,7 @@
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { useFirestore } from '@/firebase';
 import { collection, query, orderBy, limit, where } from 'firebase/firestore';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Medal, Trophy } from 'lucide-react';
 import { Skeleton } from './ui/skeleton';
@@ -37,7 +37,7 @@ const GameLeaderboard = ({ gameName }: { gameName: string }) => {
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead className="w-10 text-center">דירוג</TableHead>
+                        <TableHead className="w-[80px] text-center">דירוג</TableHead>
                         <TableHead className="text-right">שם</TableHead>
                         <TableHead className="text-center">ניקוד</TableHead>
                     </TableRow>
@@ -47,7 +47,7 @@ const GameLeaderboard = ({ gameName }: { gameName: string }) => {
                         <TableRow key={i}>
                             <TableCell><Skeleton className="h-4 w-4 mx-auto" /></TableCell>
                             <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                            <TableCell><Skeleton className="h-4 w-12" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-12 mx-auto" /></TableCell>
                         </TableRow>
                     ))}
                     {!loading && scores?.map((score, index) => (
@@ -83,7 +83,7 @@ const Leaderboard = () => {
                 <Trophy className="w-6 h-6 text-accent" />
                 טבלת שיאים
             </h3>
-            <Tabs defaultValue={games[0]} className="w-full">
+            <Tabs defaultValue={games[0]} className="w-full" dir="rtl">
                 <TabsList className="grid w-full grid-cols-2">
                    {games.map(game => (
                      <TabsTrigger key={game} value={game}>{game}</TabsTrigger>
