@@ -115,9 +115,10 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
   };
 
   const onNameSubmit: SubmitHandler<Inputs> = async (data) => {
-    if (!user || !firestore) return;
-    const score = activeGame === 'clicker' ? clicks : attempts;
-    const gameName = activeGame === 'clicker' ? 'שבירת שפצורים' : 'מצא את הרס"ר';
+    if (!user || !firestore || activeGame !== 'clicker') return;
+    
+    const score = clicks;
+    const gameName = 'שבירת שפצורים';
 
     try {
       await addScore(firestore, {
@@ -180,11 +181,11 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
     </>
   );
 
-  const renderFinishScreen = (score: number, message: string) => (
+  const renderClickerFinishScreen = () => (
      <>
       <h3 className="font-headline text-2xl text-primary font-bold">המשחק נגמר!</h3>
       <p className="text-foreground/80 mt-2 mb-4">
-        {message}
+        {`שברת ${clicks} שפצורים ב-${CLICKER_GAME_DURATION} שניות.`}
       </p>
       <form onSubmit={handleSubmit(onNameSubmit)} className="w-full space-y-4">
         <Input {...register("name", { required: true, maxLength: 15 })} placeholder="הכנס שם לטבלת השיאים" className="text-center" />
@@ -192,14 +193,31 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
         <Button type="submit" className="w-full">שמור תוצאה</Button>
       </form>
        <div className="flex gap-2 mt-4">
-          <Button onClick={activeGame === 'clicker' ? startClickerGame : resetFindSergeantGame} className="glow-on-hover">
+          <Button onClick={startClickerGame} className="glow-on-hover">
             <Repeat className="mr-2 h-4 w-4" />
             שחק שוב
           </Button>
           <Button variant="outline" onClick={() => { setGameState('menu'); setActiveGame(null); }}>חזור</Button>
         </div>
     </>
-  )
+  );
+  
+  const renderSergeantFinishScreen = () => (
+     <>
+      <h3 className="font-headline text-2xl text-primary font-bold">כל הכבוד!</h3>
+      <p className="text-foreground/80 mt-2 mb-4">
+        {`מצאת את הרס"ר ב-${attempts} ניסיונות!`}
+      </p>
+       <div className="flex gap-2 mt-4">
+          <Button onClick={resetFindSergeantGame} className="glow-on-hover">
+            <Repeat className="mr-2 h-4 w-4" />
+            שחק שוב
+          </Button>
+          <Button variant="outline" onClick={() => { setGameState('menu'); setActiveGame(null); }}>חזור</Button>
+        </div>
+    </>
+  );
+
 
   const renderClickerGame = () => {
     if (gameState === 'playing') {
@@ -221,7 +239,7 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
       );
     }
     // Finished state
-    return renderFinishScreen(clicks, `שברת ${clicks} שפצורים ב-${CLICKER_GAME_DURATION} שניות.`);
+    return renderClickerFinishScreen();
   };
 
   const renderFindSergeantGame = () => {
@@ -263,7 +281,7 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
       );
     }
      // Finished state
-    return renderFinishScreen(attempts, `מצאת את הרס"ר ב-${attempts} ניסיונות!`);
+    return renderSergeantFinishScreen();
   };
 
   return (
