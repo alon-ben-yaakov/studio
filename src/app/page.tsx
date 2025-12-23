@@ -7,7 +7,7 @@ import UnitCounters from '@/components/unit-counters';
 import MissionProgress from '@/components/mission-progress';
 import StressReliefZone from '@/components/stress-relief-zone';
 import ExcuseGenerator from '@/components/excuse-generator';
-import Soundboard from '@/components/soundboard';
+import DespairGames from '@/components/despair-games';
 import GrandFinale from '@/components/grand-finale';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { AutoFilter, Noise, Synth } from 'tone';
@@ -108,7 +108,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <ExcuseGenerator className="lg:col-span-1" isHadal={isHadal} />
             <StressReliefZone className="lg:col-span-1" onGetawayChange={handleGetawayChange} onHadalChange={handleHadalChange} />
-            <Soundboard className="lg:col-span-1" />
+            <DespairGames className="lg:col-span-1" />
           </div>
         </div>
       </main>
