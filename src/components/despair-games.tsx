@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Hand, Repeat, Play, Timer, Search, ThumbsDown, X, Trophy } from 'lucide-react';
+import { Hand, Repeat, Play, Timer, Search, ThumbsDown, X, Trophy, Sparkles } from 'lucide-react';
 import HelmetIcon from './icons/helmet-icon';
 import { useUser } from '@/firebase/auth/use-user';
 import { addScore } from '@/firebase/firestore/scores';
@@ -16,11 +16,14 @@ interface DespairGamesProps {
   className?: string;
 }
 
-type Game = 'clicker' | 'find-sergeant' | null;
+type Game = 'clicker' | 'find-sergeant' | 'toilet-cleaner' | null;
 type GameState = 'menu' | 'playing' | 'finished';
 
 const CLICKER_GAME_DURATION = 5;
 const FIND_SERGEANT_GRID_SIZE = 4;
+const TOILET_CLEANER_DURATION = 10;
+const TOILET_GRID_SIZE = 5;
+
 
 type Inputs = {
   name: string,
@@ -33,37 +36,50 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
 
   const [activeGame, setActiveGame] = useState<Game>(null);
   const [gameState, setGameState] = useState<GameState>('menu');
+  const [viewLeaderboard, setViewLeaderboard] = useState(false);
 
   // Clicker Game State
   const [clicks, setClicks] = useState(0);
   const [clickerTimeLeft, setClickerTimeLeft] = useState(CLICKER_GAME_DURATION);
-  const clickerTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const gameTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Find Sergeant Game State
   const [sergeantPosition, setSergeantPosition] = useState({ row: 0, col: 0 });
   const [found, setFound] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [clickedCells, setClickedCells] = useState<boolean[][]>([]);
-  const [viewLeaderboard, setViewLeaderboard] = useState(false);
+  
+  // Toilet Cleaner Game State
+  const [dirt, setDirt] = useState<boolean[][]>([]);
+  const [cleanedCount, setCleanedCount] = useState(0);
+  const [toiletTimeLeft, setToiletTimeLeft] = useState(TOILET_CLEANER_DURATION);
 
+
+  // Generic Timer Effect
   useEffect(() => {
-    if (activeGame === 'clicker' && gameState === 'playing' && clickerTimeLeft > 0) {
-      clickerTimerRef.current = setTimeout(() => {
-        setClickerTimeLeft(prev => prev - 1);
-      }, 1000);
-    } else if (activeGame === 'clicker' && gameState === 'playing' && clickerTimeLeft === 0) {
-      setGameState('finished');
-      if (clickerTimerRef.current) {
-        clearTimeout(clickerTimerRef.current);
-      }
+    if (gameState !== 'playing') {
+       if (gameTimerRef.current) clearTimeout(gameTimerRef.current);
+       return;
+    }
+
+    if (activeGame === 'clicker') {
+        if (clickerTimeLeft > 0) {
+            gameTimerRef.current = setTimeout(() => setClickerTimeLeft(prev => prev - 1), 1000);
+        } else {
+            setGameState('finished');
+        }
+    } else if (activeGame === 'toilet-cleaner') {
+        if (toiletTimeLeft > 0) {
+            gameTimerRef.current = setTimeout(() => setToiletTimeLeft(prev => prev - 1), 1000);
+        } else {
+            setGameState('finished');
+        }
     }
 
     return () => {
-      if (clickerTimerRef.current) {
-        clearTimeout(clickerTimerRef.current);
-      }
+      if (gameTimerRef.current) clearTimeout(gameTimerRef.current);
     };
-  }, [activeGame, gameState, clickerTimeLeft]);
+  }, [activeGame, gameState, clickerTimeLeft, toiletTimeLeft]);
 
   const startClickerGame = () => {
     setActiveGame('clicker');
@@ -113,12 +129,44 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
       setGameState('finished');
     }
   };
+  
+  const startToiletCleanerGame = () => {
+    setActiveGame('toilet-cleaner');
+    setToiletTimeLeft(TOILET_CLEANER_DURATION);
+    setCleanedCount(0);
+    // Create a grid with ~50% dirt
+    const initialDirt = Array.from({ length: TOILET_GRID_SIZE }, () =>
+        Array.from({ length: TOILET_GRID_SIZE }, () => Math.random() > 0.5)
+    );
+    setDirt(initialDirt);
+    setGameState('playing');
+    setViewLeaderboard(false);
+  }
+
+  const handleClean = (row: number, col: number) => {
+    if (gameState !== 'playing' || !dirt[row][col]) return;
+    
+    const newDirt = dirt.map(r => [...r]);
+    newDirt[row][col] = false;
+    setDirt(newDirt);
+    setCleanedCount(prev => prev + 1);
+  }
+
 
   const onNameSubmit: SubmitHandler<Inputs> = async (data) => {
-    if (!user || !firestore || activeGame !== 'clicker') return;
+    if (!user || !firestore || (activeGame !== 'clicker' && activeGame !== 'toilet-cleaner')) return;
     
-    const score = clicks;
-    const gameName = 'שבירת שפצורים';
+    let score = 0;
+    let gameName = '';
+
+    if (activeGame === 'clicker') {
+        score = clicks;
+        gameName = 'שבירת שפצורים';
+    } else if (activeGame === 'toilet-cleaner') {
+        score = cleanedCount;
+        gameName = 'ניקיון שירותים';
+    }
+
 
     try {
       await addScore(firestore, {
@@ -142,7 +190,7 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
         return (
             <>
                 <Leaderboard />
-                <Button variant="link" size="sm" onClick={() => { setViewLeaderboard(false); setGameState('menu'); }} className="mt-4">חזור למשחקים</Button>
+                <Button variant="link" size="sm" onClick={() => { setViewLeaderboard(false); setGameState('menu'); setActiveGame(null); }} className="mt-4">חזור למשחקים</Button>
             </>
         );
     }
@@ -156,6 +204,9 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
     }
     if (activeGame === 'find-sergeant') {
       return renderFindSergeantGame();
+    }
+    if (activeGame === 'toilet-cleaner') {
+        return renderToiletCleanerGame();
     }
     return renderGameMenu();
   };
@@ -173,6 +224,10 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
           <Search className="mr-2 h-4 w-4" />
           התחל "מצא את הרס"ר"
         </Button>
+         <Button onClick={startToiletCleanerGame} className="w-full glow-on-hover">
+          <Sparkles className="mr-2 h-4 w-4" />
+          התחל "ניקיון שירותים"
+        </Button>
         <Button onClick={() => setViewLeaderboard(true)} variant="outline" className="w-full mt-4">
              <Trophy className="mr-2 h-4 w-4" />
             טבלת שיאים
@@ -180,43 +235,29 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
       </div>
     </>
   );
-
-  const renderClickerFinishScreen = () => (
-     <>
+  
+  const renderGenericFinishScreen = (gameTitle: string, score: number | string, scoreLabel: string, onPlayAgain: () => void, allowSave: boolean) => (
+       <>
       <h3 className="font-headline text-2xl text-primary font-bold">המשחק נגמר!</h3>
       <p className="text-foreground/80 mt-2 mb-4">
-        {`שברת ${clicks} שפצורים ב-${CLICKER_GAME_DURATION} שניות.`}
+        {scoreLabel}
       </p>
-      <form onSubmit={handleSubmit(onNameSubmit)} className="w-full space-y-4">
-        <Input {...register("name", { required: true, maxLength: 15 })} placeholder="הכנס שם לטבלת השיאים" className="text-center" />
-        {errors.name && <p className="text-destructive text-sm">צריך להכניס שם (עד 15 תווים).</p>}
-        <Button type="submit" className="w-full">שמור תוצאה</Button>
-      </form>
+      {allowSave ? (
+        <form onSubmit={handleSubmit(onNameSubmit)} className="w-full space-y-4">
+            <Input {...register("name", { required: true, maxLength: 15 })} placeholder="הכנס שם לטבלת השיאים" className="text-center" />
+            {errors.name && <p className="text-destructive text-sm">צריך להכניס שם (עד 15 תווים).</p>}
+            <Button type="submit" className="w-full">שמור תוצאה</Button>
+        </form>
+      ) : null }
        <div className="flex gap-2 mt-4">
-          <Button onClick={startClickerGame} className="glow-on-hover">
+          <Button onClick={onPlayAgain} className="glow-on-hover">
             <Repeat className="mr-2 h-4 w-4" />
             שחק שוב
           </Button>
           <Button variant="outline" onClick={() => { setGameState('menu'); setActiveGame(null); }}>חזור</Button>
         </div>
     </>
-  );
-  
-  const renderSergeantFinishScreen = () => (
-     <>
-      <h3 className="font-headline text-2xl text-primary font-bold">כל הכבוד!</h3>
-      <p className="text-foreground/80 mt-2 mb-4">
-        {`מצאת את הרס"ר ב-${attempts} ניסיונות!`}
-      </p>
-       <div className="flex gap-2 mt-4">
-          <Button onClick={resetFindSergeantGame} className="glow-on-hover">
-            <Repeat className="mr-2 h-4 w-4" />
-            שחק שוב
-          </Button>
-          <Button variant="outline" onClick={() => { setGameState('menu'); setActiveGame(null); }}>חזור</Button>
-        </div>
-    </>
-  );
+  )
 
 
   const renderClickerGame = () => {
@@ -239,7 +280,13 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
       );
     }
     // Finished state
-    return renderClickerFinishScreen();
+    return renderGenericFinishScreen(
+        'שבירת שפצורים',
+        clicks,
+        `שברת ${clicks} שפצורים ב-${CLICKER_GAME_DURATION} שניות.`,
+        startClickerGame,
+        true
+    );
   };
 
   const renderFindSergeantGame = () => {
@@ -281,8 +328,53 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
       );
     }
      // Finished state
-    return renderSergeantFinishScreen();
+    return renderGenericFinishScreen(
+        'מצא את הרס"ר',
+        attempts,
+        `מצאת את הרס"ר ב-${attempts} ניסיונות!`,
+        resetFindSergeantGame,
+        false
+    );
   };
+
+    const renderToiletCleanerGame = () => {
+        if (gameState === 'playing') {
+            return (
+                <>
+                    <div className="absolute top-4 left-4 flex items-center gap-2 text-primary">
+                        <Timer className="h-5 w-5" />
+                        <span className="font-mono text-lg font-bold">{toiletTimeLeft}</span>
+                    </div>
+                    <div className="absolute top-4 right-4 text-primary font-bold text-lg">{cleanedCount}</div>
+                    <h3 className="font-headline text-2xl text-primary font-bold mb-2">ניקיון שירותים</h3>
+                    <p className="text-foreground/80 mb-4">עבור עם העכבר כדי לנקות!</p>
+                    <div className="grid gap-1 mb-4" style={{ gridTemplateColumns: `repeat(${TOILET_GRID_SIZE}, 1fr)` }}>
+                        {dirt.map((row, rowIndex) =>
+                            row.map((isDirty, colIndex) => (
+                                <div
+                                    key={`${rowIndex}-${colIndex}`}
+                                    onMouseEnter={() => handleClean(rowIndex, colIndex)}
+                                    className={cn(
+                                        "w-8 h-8 border border-muted-foreground/20 transition-colors",
+                                        isDirty ? "bg-amber-800/70" : "bg-green-200/50"
+                                    )}
+                                />
+                            ))
+                        )}
+                    </div>
+                    <Button variant="link" size="sm" onClick={() => { setGameState('menu'); setActiveGame(null); }}>חזור</Button>
+                </>
+            );
+        }
+        
+        return renderGenericFinishScreen(
+            'ניקיון שירותים',
+            cleanedCount,
+            `ניקית ${cleanedCount} לכלוכים ב-${TOILET_CLEANER_DURATION} שניות.`,
+            startToiletCleanerGame,
+            true
+        );
+    }
 
   return (
     <div className={cn('glass-card p-6 flex flex-col items-center justify-center text-center relative min-h-[350px]', className)}>
@@ -292,3 +384,5 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
 };
 
 export default DespairGames;
+
+    
