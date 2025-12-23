@@ -132,7 +132,7 @@ const DespairGames: React.FC<DespairGamesProps> = ({ className }) => {
       <>
         <h3 className="font-headline text-2xl text-primary font-bold">המשחק נגמר!</h3>
         <p className="text-foreground/80 mt-2 mb-4">
-          שברת <span className="font-bold text-accent">{clicks}</span> שפצורים ב-{CLICKER_GAME_DURATION} שניות.
+          שברת <span className="font-bold text-primary">{clicks}</span> שפצורים ב-{CLICKER_GAME_DURATION} שניות.
         </p>
          <p className="text-sm text-foreground/60 mb-4">
           {clicks > 25 ? "אתה מכונת ייאוש!" : "לא מספיק, נסה שוב!"}
