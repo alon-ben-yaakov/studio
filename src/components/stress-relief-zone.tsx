@@ -76,18 +76,18 @@ const StressReliefZone: React.FC<StressReliefZoneProps> = ({ className, onGetawa
         {particles.map((id) => (
           <Particle key={id} onAnimationEnd={() => handleParticleEnd(id)} emoji={EMOJIS[id % EMOJIS.length]} />
         ))}
-        <Button onClick={handleDischarge} className="w-full glow-on-hover">
+        {/* <Button onClick={handleDischarge} className="w-full glow-on-hover">
           <Bomb className="mr-2 h-4 w-4" />
           הזדכות
-        </Button>
-        <Button
+        </Button> */}
+        {/* <Button
           onClick={handleHadalToggle}
           variant={isHadalActive ? "destructive" : "default"}
           className="w-full glow-on-hover"
         >
           {isHadalActive ? <AudioLines className="mr-2 h-4 w-4"/> : <Zap className="mr-2 h-4 w-4" />}
           {isHadalActive ? 'בטל "חדל"' : 'חדל'}
-        </Button>
+        </Button> */}
         <Button
           onMouseDown={handleGetawayPress}
           onMouseUp={handleGetawayRelease}
